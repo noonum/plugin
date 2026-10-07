@@ -1,0 +1,5 @@
+---
+type: fixed
+---
+
+{"id": "4b7e2c1a-9d3f-4a6b-8e5c-2f1d0a9b8c7e", "is_owner": true, "name": "Semiconductor Value Chain", "objective": "The strategy is to invest in companies that design or manufacture semiconductors, including chip designers, foundries, integrated device manufacturers, and the makers of the equipment and materials used to produce chips.", "exclusions": ["semiconductor distributors"], "waivers": [], "mode": "global", "public": false, "tags": [], "active_version_id": "c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f", "draft_version_id": "c1d2e3f4-a5b6-4c7d-8e9f-0a1b2c3d4e5f", "status": 100, "completed": true, "metathemes": [], "gics_sectors": [], "performance": {"metadata": {"returns": 1.4822, "variance": 0.4391, "weekCount": 51, "stockCount": 50, "maxDrawdown": -0.3105, "sharpeRatio": 3.38, "annualizedReturn": 1.5267}}, "archived_at": null, "permanent_delete_at": null, "created_at": "2026-09-02T10:11:12.000000+00:00", "updated_at": "2026-09-02T10:20:00.000000+00:00", "filter_intent": null}

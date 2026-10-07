@@ -1,0 +1,32 @@
+{
+  "name": "noonum",
+  "displayName": "Noonum",
+  "version": "1.0.0",
+  "description": "Build, analyze and refine Noonum thematic investment strategies: ranked companies with the reasoning and evidence behind each one.",
+  "author": {
+    "name": "Noonum, Inc.",
+    "email": "hello@noonum.com",
+    "url": "https://noonum.ai"
+  },
+  "homepage": "https://noonum.ai",
+  "repository": "https://github.com/noonum/plugin",
+  "privacyPolicyUrl": "https://noonum.ai/privacy",
+  "termsOfServiceUrl": "https://noonum.ai/terms",
+  "supportUrl": "https://docs.noonum.ai/base/agentic/mcp-client-setup",
+  "documentationUrl": "https://docs.noonum.ai/base/agentic/overview",
+  "license": "Apache-2.0",
+  "keywords": [
+    "investing",
+    "thematic-investing",
+    "strategy",
+    "equity-research",
+    "finance",
+    "mcp"
+  ],
+  "mcpServers": {
+    "Noonum": {
+      "type": "http",
+      "url": "https://mcp.noonum.ai/mcp"
+    }
+  }
+}
