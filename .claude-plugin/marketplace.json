@@ -1,0 +1,17 @@
+{
+  "name": "noonum",
+  "owner": {
+    "name": "Noonum, Inc.",
+    "email": "hello@noonum.com"
+  },
+  "metadata": {
+    "description": "Noonum thematic investment strategy tools."
+  },
+  "plugins": [
+    {
+      "name": "noonum",
+      "source": "./",
+      "description": "Build, analyze and refine Noonum thematic investment strategies."
+    }
+  ]
+}

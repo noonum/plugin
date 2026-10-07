@@ -1,0 +1,820 @@
+{
+  "tools": [
+    {
+      "name": "list_strategies",
+      "title": "List strategies",
+      "description": "List strategies, one page at a time. `total` is the number of\nstrategies across all pages. Each carries its id, name, objective, run\nstate and summary performance metrics; get_strategy returns the rest.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "scope": {
+            "default": "user",
+            "description": "`user` returns the caller's own strategies, `public` the public catalog, `all` both.",
+            "enum": [
+              "user",
+              "public",
+              "all"
+            ],
+            "type": "string"
+          },
+          "limit": {
+            "default": 20,
+            "maximum": 50,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Number of items to skip.",
+            "minimum": 0,
+            "type": "integer"
+          }
+        }
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_strategy",
+      "title": "Get strategy",
+      "description": "Get a strategy and the run state of its active version (`status`,\n`completed`), with summary performance metrics. `user_id` is null when\nthe caller is not the owner.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "strategyId": {
+            "description": "The strategy id.",
+            "type": "string"
+          }
+        },
+        "required": [
+          "strategyId"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_strategy_companies",
+      "title": "List result companies",
+      "description": "List the companies a strategy run produced, one page at a time,\nhighest `convictionScore` first. `total` is the number of companies\nacross all pages; the tail scores near zero, so the first page is\nusually enough.\n\n`linguisticBeta` measures the company's exposure to the theme,\n`marketBuzz` is its share of the buzz across the companies returned,\nand `convictionScore` (0 to 1) combines the two. Compare them within one\nstrategy only. The strategy's stored `filter_intent` applies unless a\nfilter parameter is passed, and a filter recomputes `marketBuzz` and\n`convictionScore` over the companies it keeps.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "strategyId": {
+            "description": "The strategy id.",
+            "type": "string"
+          },
+          "asOfDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Read the run for this date (YYYY-MM-DD). Defaults to the latest completed run."
+          },
+          "versionId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Read this version. Defaults to the active version."
+          },
+          "includeReasoning": {
+            "default": false,
+            "description": "Include why each company was included. Makes every row much larger, so use a `limit` of 20 or less.",
+            "type": "boolean"
+          },
+          "exchangeRegion": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Region labels or ISO 10383 MICs (such as XNAS) that pick which listing represents each company; a company with no matching listing is dropped. The labels are United States, Developed Markets, Emerging Markets, Frontier Markets, Europe, United Kingdom, EMEA, Asia (incl. AU/NZ), Asia (excl. AU/NZ), Japan, China, India, North America, Latin America, MENA and Africa; any other value is read as a MIC, so a country code matches nothing. Overrides the strategy's stored filter; [] means no exchange-region filter."
+          },
+          "domicile": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Region labels (see exchangeRegion) or ISO 3166-1 alpha-2 codes such as US; a company domiciled elsewhere is dropped. Overrides the strategy's stored filter; [] means no domicile filter."
+          },
+          "marketCapMin": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Inclusive lower bound on market cap in USD. Overrides the strategy's stored filter. A historical run has no market caps, so the bounds do not apply to it."
+          },
+          "marketCapMax": {
+            "anyOf": [
+              {
+                "minimum": 0,
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Inclusive upper bound on market cap in USD."
+          },
+          "limit": {
+            "default": 50,
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          },
+          "offset": {
+            "default": 0,
+            "description": "Number of items to skip.",
+            "minimum": 0,
+            "type": "integer"
+          }
+        },
+        "required": [
+          "strategyId"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_strategy_factsheet",
+      "title": "Get factsheet",
+      "description": "Get the factsheet PDF of a strategy run. `status` is `ready` with a\n`url` that expires after 5 minutes (call again for a fresh one),\n`generating`, or `not_requested` (call request_strategy_factsheet).",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "strategyId": {
+            "description": "The strategy id.",
+            "type": "string"
+          },
+          "asOfDate": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Read the run for this date (YYYY-MM-DD). Defaults to the latest completed run."
+          },
+          "versionId": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "default": null,
+            "description": "Read this version. Defaults to the active version."
+          }
+        },
+        "required": [
+          "strategyId"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_usage",
+      "title": "Get plan and credits",
+      "description": "Get the caller's plan and the credits used and left in the current\nperiod. Each strategy run spends one credit.",
+      "inputSchema": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {}
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "create_strategy",
+      "title": "Create strategy",
+      "description": "Creates a strategy owned by the authenticated user. Nothing runs until the strategy is submitted.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "The strategy name.",
+            "example": "Electric Vehicles"
+          },
+          "objective": {
+            "type": "string",
+            "description": "The investment objective in natural language."
+          },
+          "exclusions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Phrases used to exclude companies when building the strategy."
+          },
+          "waivers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Conditions the verifier would otherwise reject a company for (a readiness stage such as pre-revenue, or a role tier such as distributors) which this strategy accepts. A waiver lifts a rejection ground; it never adds a role."
+          },
+          "mode": {
+            "enum": [
+              "global",
+              "us"
+            ],
+            "type": "string",
+            "description": "Geographic scope of the company universe. \"global\" (default) ranks companies worldwide; \"us\" restricts the universe to companies listed on a US exchange (NYSE, NASDAQ, AMEX, OTC).",
+            "default": "global"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "User-defined tags for the strategy."
+          },
+          "filter_intent": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "exchange_region": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Region labels or ISO 10383 MICs (such as XNAS) that pick which listing represents each company. The labels are United States, Developed Markets, Emerging Markets, Frontier Markets, Europe, United Kingdom, EMEA, Asia (incl. AU/NZ), Asia (excl. AU/NZ), Japan, China, India, North America, Latin America, MENA and Africa; any other value is read as a MIC, so a country code matches nothing.",
+                "example": [
+                  "China"
+                ]
+              },
+              "domicile": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Domicile: the country of incorporation, or for an issuer incorporated in an offshore centre the country of its best ordinary-share listing. Each value is a region label (see `exchange_region`) or an ISO 3166-1 alpha-2 code such as US. A company whose domicile matches none of them is omitted. Does not change which listing represents the company.",
+                "example": [
+                  "KY"
+                ]
+              },
+              "market_cap": {
+                "required": [
+                  "min",
+                  "max"
+                ],
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "min": {
+                    "minimum": 0.0,
+                    "type": [
+                      "number",
+                      "null"
+                    ],
+                    "example": 1000000000
+                  },
+                  "max": {
+                    "minimum": 0.0,
+                    "type": [
+                      "number",
+                      "null"
+                    ]
+                  }
+                },
+                "additionalProperties": false,
+                "description": "Market-cap display range in USD. A null bound is open-ended; when both bounds are numbers, `min` must not exceed `max`."
+              }
+            },
+            "additionalProperties": false,
+            "description": "Display-filter intent for the strategy's results grid. Unlike `mode`, it never restricts the universe the engine scores \u2014 every company is still evaluated and frozen onto the run. It does shape reads of that run: the companies endpoints apply it unless the request carries its own intent, omitting the companies outside it and re-picking which listing represents each of the rest."
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_archived_strategies",
+      "title": "List archived strategies",
+      "description": "Returns the caller's archived strategies that are still within the 30-day grace window before permanent deletion.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {},
+        "required": []
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "archive_strategy",
+      "title": "Archive strategy",
+      "description": "Archives a strategy. Archived strategies stay recoverable for a 30-day grace window before they are permanently deleted. Only the owner can archive a strategy.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "strategyId": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the strategy."
+          }
+        },
+        "required": [
+          "strategyId"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "update_strategy",
+      "title": "Update strategy",
+      "description": "Updates the draft fields of a strategy. A field you send replaces its stored value, so `exclusions` and `waivers` must carry every phrase to keep. Changes take effect on the next submit. Only the owner can update a strategy.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "strategyId": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the strategy."
+          },
+          "name": {
+            "type": "string"
+          },
+          "objective": {
+            "type": "string"
+          },
+          "exclusions": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "waivers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "mode": {
+            "enum": [
+              "global",
+              "us"
+            ],
+            "type": "string",
+            "description": "Geographic scope of the company universe (\"global\" or \"us\"). See CreateStrategyRequest.mode."
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "filter_intent": {
+            "allOf": [
+              {
+                "type": [
+                  "object",
+                  "null"
+                ],
+                "properties": {
+                  "exchange_region": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Region labels or ISO 10383 MICs (such as XNAS) that pick which listing represents each company. The labels are United States, Developed Markets, Emerging Markets, Frontier Markets, Europe, United Kingdom, EMEA, Asia (incl. AU/NZ), Asia (excl. AU/NZ), Japan, China, India, North America, Latin America, MENA and Africa; any other value is read as a MIC, so a country code matches nothing.",
+                    "example": [
+                      "China"
+                    ]
+                  },
+                  "domicile": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "description": "Domicile: the country of incorporation, or for an issuer incorporated in an offshore centre the country of its best ordinary-share listing. Each value is a region label (see `exchange_region`) or an ISO 3166-1 alpha-2 code such as US. A company whose domicile matches none of them is omitted. Does not change which listing represents the company.",
+                    "example": [
+                      "KY"
+                    ]
+                  },
+                  "market_cap": {
+                    "required": [
+                      "min",
+                      "max"
+                    ],
+                    "type": [
+                      "object",
+                      "null"
+                    ],
+                    "properties": {
+                      "min": {
+                        "minimum": 0.0,
+                        "type": [
+                          "number",
+                          "null"
+                        ],
+                        "example": 1000000000
+                      },
+                      "max": {
+                        "minimum": 0.0,
+                        "type": [
+                          "number",
+                          "null"
+                        ]
+                      }
+                    },
+                    "additionalProperties": false,
+                    "description": "Market-cap display range in USD. A null bound is open-ended; when both bounds are numbers, `min` must not exceed `max`."
+                  }
+                },
+                "additionalProperties": false,
+                "description": "Display-filter intent for the strategy's results grid. Unlike `mode`, it never restricts the universe the engine scores \u2014 every company is still evaluated and frozen onto the run. It does shape reads of that run: the companies endpoints apply it unless the request carries its own intent, omitting the companies outside it and re-picking which listing represents each of the rest."
+              }
+            ],
+            "description": "Replaces the stored filter intent. Null (or an empty object) clears it; omitting the field leaves it unchanged."
+          }
+        },
+        "required": [
+          "strategyId"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "revive_strategy",
+      "title": "Revive strategy",
+      "description": "Restores an archived strategy while it is still within its 30-day grace window. Only the owner can revive a strategy.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "strategyId": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the strategy."
+          }
+        },
+        "required": [
+          "strategyId"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "submit_strategy",
+      "title": "Submit strategy run",
+      "description": "Queues a run for a version of the strategy. The run is live when `as_of_date` is omitted or set to today in UTC, and historical when set to a past date. Live and historical runs draw from the same credit allowance of your plan's current period and are rejected once it is exhausted; a run that fails is not charged. Only the owner can submit a strategy.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "strategyId": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the strategy."
+          },
+          "as_of_date": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string",
+            "description": "The as-of date for the run in `YYYY-MM-DD` format. When omitted or set to today in UTC, the run is live. A past date makes the run historical. Future dates are rejected with a 400.",
+            "format": "date"
+          },
+          "version_id": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "description": "The version to run. Defaults to the version matching the strategy's current draft, creating that version if needed and promoting it to active.",
+            "format": "uuid"
+          },
+          "force": {
+            "type": "boolean",
+            "description": "Re-run even when a completed run already exists for this version and date.",
+            "default": false
+          },
+          "create_factsheet": {
+            "type": "boolean",
+            "description": "Whether to also request a factsheet for the resulting run. Ignored for historical runs (an `as_of_date` before today), which have no factsheet.",
+            "default": false
+          },
+          "priority": {
+            "maximum": 10.0,
+            "minimum": 1.0,
+            "type": "integer",
+            "description": "Queue priority for scheduling historical runs, from 1 to 10. Higher runs sooner; below 5 is batched and can take hours.",
+            "default": 5
+          }
+        },
+        "required": [
+          "strategyId"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": true,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_strategy_company",
+      "title": "Get company reasoning and evidence",
+      "description": "Returns the reasoning and supporting evidence behind a company's inclusion or exclusion in the run.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "asOfDate": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string",
+            "format": "date",
+            "description": "The as-of date in `YYYY-MM-DD` format that selects a specific run of the version. When omitted, the latest completed run for the version is used."
+          },
+          "versionId": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "format": "uuid",
+            "description": "The version to read. When omitted, the strategy's active version is used."
+          },
+          "strategyId": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the strategy."
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Company (issuer) ID in the Noonum database."
+          }
+        },
+        "required": [
+          "strategyId",
+          "companyId"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_strategy_available_dates",
+      "title": "List dates with completed runs",
+      "description": "Returns the as-of dates that have a completed run for the selected version.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "versionId": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "format": "uuid",
+            "description": "The version to read. When omitted, the strategy's active version is used."
+          },
+          "strategyId": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the strategy."
+          }
+        },
+        "required": [
+          "strategyId"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "request_strategy_factsheet",
+      "title": "Request factsheet",
+      "description": "Requests generation of the factsheet for the selected run. Requesting again while it is generating starts nothing new. The owner can set `force` to regenerate an existing factsheet, or to retry one that stays `generating`. Factsheets are available for live runs only; requesting one for a historical run returns 400.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "strategyId": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the strategy."
+          },
+          "as_of_date": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string",
+            "description": "The as-of date in `YYYY-MM-DD` format that selects the run. When omitted, the latest completed run for the version is used.",
+            "format": "date"
+          },
+          "version_id": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "description": "The version to use. When omitted, the strategy's active version is used.",
+            "format": "uuid"
+          },
+          "force": {
+            "type": "boolean",
+            "description": "Generate again even when a factsheet exists or is already being generated for the run. Honored only for the strategy's owner.",
+            "default": false
+          }
+        },
+        "required": [
+          "strategyId"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": false,
+        "destructiveHint": false,
+        "idempotentHint": false,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "list_strategy_versions",
+      "title": "List strategy versions",
+      "description": "Returns the strategy's versions, newest first. The owner sees every version. A non-owner viewing a public strategy sees only the active version. Each entry includes the version's metadata and its latest run state.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "strategyId": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the strategy."
+          }
+        },
+        "required": [
+          "strategyId"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "get_strategy_version",
+      "title": "Get strategy version and run state",
+      "description": "Returns the version's metadata and run state. Without `asOfDate`, the response reports the version's overall state, meaning the status of its most recent run along with `latest_run_date` and `runs_count`. With `asOfDate`, the response reports the state of the run on that date, and the overall fields are null.",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "asOfDate": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "type": "string",
+            "format": "date",
+            "description": "The as-of date in `YYYY-MM-DD` format that selects a specific run of the version. When omitted, the latest completed run for the version is used."
+          },
+          "strategyId": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the strategy."
+          },
+          "versionId": {
+            "pattern": "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$",
+            "type": "string",
+            "format": "uuid",
+            "description": "UUID of the strategy version."
+          }
+        },
+        "required": [
+          "strategyId",
+          "versionId"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    },
+    {
+      "name": "search_companies",
+      "title": "Search companies",
+      "description": "Searches companies by name, symbol, ISIN, or FIGI to find the company ID that looks a company up in a strategy's results. Each result carries the ID, sector, industry, and the most relevant listings for the query (not the full cross-listing set); there are no prices, valuation ratios, or financials. Exact matches rank above partial matches. Defaults to 10 results.\n",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "Partial or full company name, ticker, ISIN, or FIGI.",
+            "example": "GO"
+          },
+          "limit": {
+            "minimum": 1.0,
+            "type": "integer",
+            "description": "Maximum number of results to return.",
+            "format": "int32",
+            "default": 10
+          }
+        },
+        "required": [
+          "query"
+        ]
+      },
+      "annotations": {
+        "readOnlyHint": true,
+        "destructiveHint": false,
+        "idempotentHint": true,
+        "openWorldHint": false
+      }
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+---
+type: fixed
+---
+
+{"results": [{"id": "7c968c33-8837-5c32-a042-952fd52f5f9c", "name": "Apple Inc", "market_cap": null, "sector": "Electronic Technology", "industry": "Telecommunications Equipment", "securities": [{"symbol": "AAPL", "isin": "US0378331005", "figi": null, "market": "us", "exchange": "NASDAQ Stock Market", "mic": "XNAS", "is_primary": true}]}, {"id": "829568ae-a64b-5a90-a886-7249da30083b", "name": "Applepark Co. Ltd", "market_cap": null, "sector": "Administrative and Support and Waste Management and Remediation Services", "industry": "Administrative and Support and Waste Management and Remediation Services", "securities": [{"symbol": "164A", "isin": "JP3121250009", "figi": null, "market": "jp", "exchange": "Tokyo Stock Exchange", "mic": "XJPX", "is_primary": true}]}, {"id": "adca7f63-a214-531b-bf24-84f6a5457083", "name": "Apple Rush Company Inc", "market_cap": null, "sector": "Consumer Non-Durables", "industry": "Beverages: Non-Alcoholic", "securities": [{"symbol": "APRU", "isin": "US03785R2040", "figi": null, "market": "us", "exchange": "OTC Markets Group", "mic": "OTCM", "is_primary": true}]}]}

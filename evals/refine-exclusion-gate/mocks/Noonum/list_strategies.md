@@ -1,0 +1,5 @@
+---
+type: fixed
+---
+
+{"total": 3, "offset": 0, "strategies": [{"id": "4b7e2c1a-9d3f-4a6b-8e5c-2f1d0a9b8c7e", "name": "Semiconductor Value Chain", "objective": "The strategy is to invest in companies that design or manufacture semiconductors, including chip designers, foundries, integrated device manufacturers, and the makers of the equipment and materials used to produce chips.", "public": false, "status": 100, "completed": true, "performance": {"metadata": {"returns": 1.4822, "variance": 0.4391, "weekCount": 51, "stockCount": 50, "maxDrawdown": -0.3105, "sharpeRatio": 3.38, "annualizedReturn": 1.5267}}}, {"id": "2a9e4f7c-5b1d-4c8e-a3f6-0d7b9e2c4a18", "name": "GLP-1", "objective": "Invest in companies developing weight loss and weight management solutions using GLP-1 and diabetes drugs.", "public": false, "status": 100, "completed": true, "performance": null}, {"id": "8d3b6e1f-4c7a-4f2e-b9d5-6a0c8e3f1b27", "name": "HBM", "objective": "The strategy is to invest in companies that are manufacturing high-bandwidth memory and supplying the ecosystem that enables advanced memory performance.", "public": false, "status": 0, "completed": false, "performance": null}]}

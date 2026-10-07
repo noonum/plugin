@@ -1,0 +1,102 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "noonum",
+  "version": "1.0.0",
+  "description": "Build, analyze and refine Noonum thematic investment strategies: ranked companies with the reasoning and evidence behind each one.",
+  "author": {
+    "name": "Noonum, Inc.",
+    "email": "hello@noonum.com",
+    "url": "https://noonum.ai"
+  },
+  "homepage": "https://noonum.ai",
+  "repository": "https://github.com/noonum/plugin",
+  "license": "Apache-2.0",
+  "keywords": [
+    "thematic-investing",
+    "investing",
+    "stocks",
+    "portfolio",
+    "index-construction",
+    "equity-research",
+    "investment-strategy",
+    "finance"
+  ],
+  "extensions": {
+    "com.openai": {
+      "interface": {
+        "displayName": "Noonum",
+        "shortDescription": "Thematic investment research",
+        "longDescription": "Noonum turns an investment theme written in plain language into a ranked list of companies, with the reasoning and evidence behind each one.\n\nDescribe a thesis or share an article, and Noonum builds a strategy, runs it, and shows the companies that fit. You can then ask why a company is in or out, find outliers, break the holdings down by sector, region, or size, compare strategies, check performance, refine exclusions and filters, request a factsheet, and browse Noonum's public strategies.\n\nRequires a Noonum account. Results are research data, not investment advice. Noonum does not place trades.",
+        "developerName": "Noonum, Inc.",
+        "category": "Finance",
+        "websiteURL": "https://noonum.ai",
+        "supportURL": "https://docs.noonum.ai/base/agentic/mcp-client-setup",
+        "privacyPolicyURL": "https://noonum.ai/privacy",
+        "termsOfServiceURL": "https://noonum.ai/terms",
+        "defaultPrompt": [
+          "Build a strategy for companies supplying the GLP-1 manufacturing chain",
+          "Why is NVIDIA in the Semiconductors strategy?",
+          "Show my Noonum strategies"
+        ],
+        "composerIcon": "./assets/icon.png",
+        "logo": "./assets/icon.png"
+      },
+      "review": {
+        "test_cases": {
+          "positive": [
+            {
+              "description": "\"Build a strategy for companies supplying the GLP-1 manufacturing chain and run it.\" Builds and runs a new strategy. The plugin shows the draft and asks before spending one credit of the reviewer account; choose to create and run it.",
+              "prompt": "Build a strategy for companies supplying the GLP-1 manufacturing chain and run it.",
+              "tools_triggered": "list_strategies, get_usage, create_strategy, submit_strategy, get_strategy_version, get_strategy_companies",
+              "expected_behavior": "Shows the drafted name and objective and asks to confirm spending one credit. After confirmation, creates and runs the strategy once. When the run completes, usually in a few minutes, shows the top companies with the reason each was included and the dashboard.noonum.com link."
+            },
+            {
+              "description": "\"Show Noonum's public strategies and how they have performed.\" Browses the public strategy catalog. Read only.",
+              "prompt": "Show Noonum's public strategies and how they have performed.",
+              "tools_triggered": "list_strategies",
+              "expected_behavior": "Lists public strategies by name with their status, the total count, and performance where available. Describes performance as hindsight on today's top holdings, not a track record. Nothing is created or changed."
+            },
+            {
+              "description": "\"Show me the top 15 US-listed companies over $10 billion in market cap in Noonum's Chip Equipment & Advanced Packaging strategy, with why each is included. Don't save the filter.\" Finds a public strategy by name and applies a one-off listing and market-cap filter without saving it. Read only.",
+              "prompt": "Show me the top 15 US-listed companies over $10 billion in market cap in Noonum's Chip Equipment & Advanced Packaging strategy, with why each is included. Don't save the filter.",
+              "tools_triggered": "list_strategies, get_strategy, get_strategy_version, get_strategy_companies",
+              "expected_behavior": "Shows up to 15 US-listed companies with a market cap of at least $10 billion from Chip Equipment & Advanced Packaging, each with the reason it was included, plus the filtered total and the dashboard link. The saved strategy is not changed and nothing is rerun."
+            },
+            {
+              "description": "\"Why is Applied Materials in Noonum's Chip Equipment & Advanced Packaging strategy? Show the evidence and its dates.\" Finds a public strategy by name and explains why a company is in it, with dated evidence. Read only.",
+              "prompt": "Why is Applied Materials in Noonum's Chip Equipment & Advanced Packaging strategy? Show the evidence and its dates.",
+              "tools_triggered": "list_strategies, get_strategy_company, with get_strategy_companies or search_companies to find the company",
+              "expected_behavior": "Confirms Applied Materials is included, explains why, and cites 3 to 5 of the newest evidence items with their source and date. Does not invent evidence or change the strategy."
+            },
+            {
+              "description": "\"In my AI Data Center Power strategy, show only US-listed companies with a market cap of at least $10 billion by default. Don't rerun it.\" Saves a default display filter on a strategy the reviewer account owns; the account already has a completed AI Data Center Power strategy. Free: no rerun and no credit.",
+              "prompt": "In my AI Data Center Power strategy, show only US-listed companies with a market cap of at least $10 billion by default. Don't rerun it.",
+              "tools_triggered": "list_strategies, get_strategy, update_strategy, get_strategy_companies",
+              "expected_behavior": "Saves the filter on the strategy and shows the filtered companies, or says none match. Does not ask to spend a credit and does not rerun the strategy."
+            }
+          ],
+          "negative": [
+            {
+              "description": "\"What is NVIDIA's stock price right now, and how much has it moved today?\" Noonum has no live prices, so it should not be called.",
+              "prompt": "What is NVIDIA's stock price right now, and how much has it moved today?"
+            },
+            {
+              "description": "\"Help me write a go-to-market strategy for our new B2B scheduling app.\" This is a business plan, not an investment strategy, so Noonum should not be called.",
+              "prompt": "Help me write a go-to-market strategy for our new B2B scheduling app."
+            },
+            {
+              "description": "\"How should I split my retirement savings between my 401(k) and a Roth IRA this year?\" This is personal financial planning, not thematic research, so Noonum should not be called.",
+              "prompt": "How should I split my retirement savings between my 401(k) and a Roth IRA this year?"
+            }
+          ]
+        },
+        "commerce": false,
+        "commerce_description": "The plugin and its MCP tools sell nothing and have no payment or checkout flow. Strategy runs use credits from the user's existing Noonum plan, which refill each period; when credits run out, the plugin gives the refill date."
+      },
+      "publication": {
+        "countries": [],
+        "release_notes": "Initial release in the OpenAI plugin directory: the Noonum MCP server and two skills, build-strategy (build and run a strategy from a thesis or article) and strategy (holdings, evidence, filters, refinement, factsheets, and archiving)."
+      }
+    }
+  }
+}
